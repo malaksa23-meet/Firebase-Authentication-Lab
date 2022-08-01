@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
-<body>
+<body> 
+    <form>
+        <title>Add Tweet :</title>
+        <input type="text" name="text" placeholder="Enter text here ">
+
+            <textarea maxlength="280"></textarea>
+        
+        <input type="submit"/>
+    </form>
     <button type="button" onclick=window.location.href="{{url_for('sign_out')}}"> sign out :</button> 
     Great Job!
 </body>

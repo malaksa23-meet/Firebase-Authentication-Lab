@@ -10,10 +10,11 @@ config = {
   "messagingSenderId": "121299953984",
   "appId": "1:121299953984:web:f7405100b83a2c6f6532a5",
   "measurementId": "G-L2HVEVYKTJ",
-  "databaseURL" : ""
+  "databaseURL" : "https://cs-group-f-c42f6-default-rtdb.europe-west1.firebasedatabase.app/"
 } 
 firebase = pyrebase.initialize_app(config)
 auth=firebase.auth()
+db = firebase.database()
 
 
 
@@ -44,25 +45,51 @@ def signup():
     if request.method == 'POST':
        email = request.form['email']
        password = request.form['password']
+       name = request.form['name']
        try:
         login_session['user'] =auth.create_user_with_email_and_password(email, password)
+        user = {"name": name,"email":email, "password":password}
+        db.child("Users").child(login_session['user']['localId']).set(user)
+
         return redirect(url_for('add_tweet'))
        except:
-            error = "Authentication failed"
-   
-
-
+            error = "Authentication failed" 
+            
     return render_template("signup.html")
 
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
 def add_tweet():
+    error = ""
+
+    if request.method == 'POST':
+        try:
+            text= request.form['text']
+            title= request.form['title'] 
+            tweet={"text":text,"title":title , "uid":login_session['user']['localId']}
+            db.chlid("Tweets").push(tweet)
+        except:
+            error:"error - can't add ths tweet"
     return render_template("add_tweet.html")
+
 
 
 @app.route('/sign_out', methods=['GET', 'POST'])
 def sign_out():
     return redirect(url_for('signin'))
+
+
+@app.route('/all_tweets', methods=['GET', 'POST'])
+def all_tweet():
+    if request.method=='POST':
+        error=""
+        try:
+            all_tweet=db.child("Tweets").get().val()
+        except:
+            error:"error - can't show all the tweets"
+
+    return render_template("tweets.html",all_tweet=all_tweet)
+
 
 
 
