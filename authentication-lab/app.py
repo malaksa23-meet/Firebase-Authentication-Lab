@@ -40,22 +40,24 @@ def signin():
 
 
 @app.route('/signup', methods=['GET', 'POST'])
-def signup(): 
+def signup():
     error = ""
     if request.method == 'POST':
-       email = request.form['email']
-       password = request.form['password']
-       name = request.form['name']
-       try:
-        login_session['user'] =auth.create_user_with_email_and_password(email, password)
-        user = {"name": name,"email":email, "password":password}
-        db.child("Users").child(login_session['user']['localId']).set(user)
-
-        return redirect(url_for('add_tweet'))
-       except:
+        email = request.form['email']
+        password = request.form['password']
+        name = request.form['name']
+        bio= request.form['bio']
+        user_name = request.form['uname']
+        try:
+            login_session['user'] =auth.create_user_with_email_and_password(email, password)
+            user = {"name": name,"email":email, "password":password,"bio":bio,"user_name":user_name}
+            db.child("Users").child(login_session['user']['localId']).set(user)
+            return redirect(url_for('add_tweet'))
+        except:
             error = "Authentication failed" 
-            
+            return render_template("signup.html",error =error)
     return render_template("signup.html")
+
 
 
 @app.route('/add_tweet', methods=['GET', 'POST'])
@@ -66,11 +68,16 @@ def add_tweet():
         try:
             text= request.form['text']
             title= request.form['title'] 
-            tweet={"text":text,"title":title , "uid":login_session['user']['localId']}
-            db.chlid("Tweets").push(tweet)
+            tweet={"text":text,"title":title}
+            # , "uid":login_session['user']['localId']
+            db.child("Tweets").push(tweet)
+            return redirect(url_for('all_tweet'))
         except:
             error:"error - can't add ths tweet"
-    return render_template("add_tweet.html")
+            return error
+
+    else:
+        return render_template("add_tweet.html")
 
 
 
@@ -81,13 +88,13 @@ def sign_out():
 
 @app.route('/all_tweets', methods=['GET', 'POST'])
 def all_tweet():
-    if request.method=='POST':
-        error=""
-        try:
-            all_tweet=db.child("Tweets").get().val()
-        except:
-            error:"error - can't show all the tweets"
-
+    error=""
+    try:
+        all_tweet=db.child("Tweets").get().val().values()
+        print(all_tweet)
+    except:
+        error:"error - can't show all the tweets"
+        return error
     return render_template("tweets.html",all_tweet=all_tweet)
 
 
